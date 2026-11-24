@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오찬우 Archive</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-paper: #FAF8F5;
+      --panel-bg: #FFFFFF;
+      --ink-black: #18181B;
+      --ink-muted: #6E6A6F;
+      --cream-soft: #F3E3D0;
+      --peach-warm: #D8A48F;
+      --blush-manhwa: #E5989B;
+      --wine-accent: #8C3B4A;
+      --border-line: #18181B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(180deg, #FAF8F5 0%, #F7EFE6 100%);
+      color: var(--ink-black);
+      font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: var(--panel-bg);
+      border-bottom: 2px solid var(--border-line);
+      padding: 18px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand h1 {
+      font-family: 'Noto Sans KR', 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink-black);
+    }
+
+    .btn-primary {
+      background: var(--wine-accent);
+      color: #FFFFFF;
+      border: 2px solid var(--border-line);
+      padding: 9px 16px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 2px 2px 0px var(--border-line);
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--ink-black);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 22px 20px;
+    }
+
+    .search-panel {
+      background: var(--panel-bg);
+      border: 2px solid var(--border-line);
+      box-shadow: 4px 4px 0px var(--peach-warm);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-row input {
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border-line);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      background: var(--bg-paper);
+      color: var(--ink-black);
+    }
+
+    .search-row input:focus {
+      outline: none;
+      border-color: var(--wine-accent);
+      background: #FFFFFF;
+    }
+
+    .btn-secondary {
+      background: var(--cream-soft);
+      color: var(--ink-black);
+      border: 1.5px solid var(--border-line);
+      padding: 9px 14px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: var(--peach-warm);
+      color: #FFFFFF;
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .tag-cloud-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-right: 4px;
+    }
+
+    .tag-chip {
+      background: var(--cream-soft);
+      border: 1.5px solid var(--border-line);
+      color: var(--ink-black);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .tag-chip:hover, .tag-chip.active {
+      background: var(--wine-accent);
+      border-color: var(--border-line);
+      color: #FFFFFF;
+    }
+
+    .upload-box {
+      display: none;
+      background: var(--panel-bg);
+      border: 2px solid var(--border-line);
+      box-shadow: 5px 5px 0px var(--blush-manhwa);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 26px;
+    }
+
+    .upload-box.open {
+      display: block;
+    }
+
+    .upload-box h2 {
+      font-size: 1.15rem;
+      margin-bottom: 14px;
+      border-bottom: 1.5px solid var(--cream-soft);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="file"] {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border-line);
+      border-radius: 6px;
+      background: var(--bg-paper);
+      font-size: 0.9rem;
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      margin-top: 4px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .panel-card {
+      background: var(--panel-bg);
+      border: 2px solid var(--border-line);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 3px 3px 0px var(--peach-warm);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0px var(--wine-accent);
+    }
+
+    .panel-card img {
+      width: 100%;
+      height: 270px;
+      object-fit: cover;
+      display: block;
+      border-bottom: 2px solid var(--border-line);
+      background: var(--cream-soft);
+    }
+
+    .card-tags {
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .mini-tag {
+      font-size: 0.74rem;
+      font-weight: 600;
+      background: var(--cream-soft);
+      color: var(--ink-black);
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(24, 24, 27, 0.3);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      background: var(--panel-bg);
+      border: 2px dashed var(--border-line);
+      border-radius: 8px;
+      color: var(--ink-muted);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(24, 24, 27, 0.82);
+      z-index: 50;
+      padding: 20px;
+      overflow-y: auto;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--panel-bg);
+      border: 2px solid var(--border-line);
+      border-radius: 8px;
+      max-width: 820px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 8px 8px 0px var(--peach-warm);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--border-line);
+      background: var(--cream-soft);
+    }
+
+    .modal-body {
+      padding: 18px;
+      text-align: center;
+    }
+
+    .modal-body img {
+      max-width: 100%;
+      max-height: 70vh;
+      border: 1.5px solid var(--border-line);
+      border-radius: 4px;
+    }
+
+    .modal-footer {
+      padding: 14px 18px;
+      border-top: 1.5px solid var(--cream-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: left;
+    }
+
+    .status-msg {
+      margin-top: 10px;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <h1>오찬우 Archive</h1>
+      </div>
+      <button class="btn-primary" onclick="toggleUpload()">+ Subir Imagen</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <section id="uploadSection" class="upload-box">
+      <h2>Subir nueva imagen a 오찬우 Archive</h2>
+      <div class="form-group">
+        <label for="fileInput">Selecciona tu imagen</label>
+        <input type="file" id="fileInput" accept="image/*" />
+      </div>
+      <div class="form-group">
+        <label for="tagsInput">Tus Tags (separados por coma o espacio)</label>
+        <input type="text" id="tagsInput" placeholder="ej: oh_chanwoo, beret, bj_alex" />
+        <p class="hint">Usa minúsculas y guiones bajos (_) para que los filtros y el bot los encuentren exactos.</p>
+      </div>
+      <button class="btn-primary" id="uploadBtn" onclick="uploadPost()">Guardar en la Galería</button>
+      <button class="btn-secondary" onclick="toggleUpload()">Cancelar</button>
+      <p id="uploadStatus" class="status-msg"></p>
+    </section>
+
+    <section class="search-panel">
+      <div class="search-row">
+        <input type="text" id="searchInput" placeholder="Buscar por tag... (ej: oh_chanwoo, beret)" oninput="filterGallery()" />
+        <button class="btn-secondary" onclick="clearSearch()">Limpiar</button>
+      </div>
+      <div class="tag-cloud" id="tagCloud">
+        <span class="tag-cloud-label">Tags disponibles:</span>
+      </div>
+    </section>
+
+    <main id="galleryGrid" class="gallery-grid"></main>
+  </div>
+
+  <div id="imageModal" class="modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <strong>오찬우 Archive</strong>
+        <button class="btn-secondary" onclick="forceCloseModal()">Cerrar ✕</button>
+      </div>
+      <div class="modal-body">
+        <img id="modalImg" src="" alt="Vista ampliada" />
+      </div>
+      <div class="modal-footer">
+        <div id="modalTags" class="card-tags"></div>
+        <div>
+          <button class="btn-secondary" onclick="copyImageUrl()">Copiar enlace directo (para Bot)</button>
+          <span id="copyFeedback" style="font-size:0.82rem; margin-left:8px; color:var(--wine-accent); font-weight:600;"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ucabncmihjzwdjggxvwv.supabase.co/rest/v1/';
+    const SUPABASE_KEY = 'sb_publishable_sZpAG4WxsKvy_zpoW5SiuA_7UYYllZf';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let allPosts = [];
+    let currentModalUrl = '';
+
+    function toggleUpload() {
+      document.getElementById('uploadSection').classList.toggle('open');
+    }
+
+    function normalizeTags(raw) {
+      return raw
+        .toLowerCase()
+        .split(/[\s,]+/)
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+    }
+
+    async function loadPosts() {
+      const grid = document.getElementById('galleryGrid');
+      grid.innerHTML = '<div class="empty-state">Cargando archivo...</div>';
+
+      const { data, error } = await supabaseClient
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        grid.innerHTML = `<div class="empty-state">Error al conectar: ${error.message}<br>Revisa tus claves o que RLS esté desactivado en la tabla posts.</div>`;
+        return;
+      }
+
+      allPosts = data || [];
+      renderTagCloud(allPosts);
+      renderGallery(allPosts);
+    }
+
+    function renderTagCloud(posts) {
+      const cloud = document.getElementById('tagCloud');
+      const tagSet = new Set();
+      posts.forEach(p => {
+        normalizeTags(p.tags || '').forEach(t => tagSet.add(t));
+      });
+
+      cloud.innerHTML = '<span class="tag-cloud-label">Tags disponibles:</span>';
+      Array.from(tagSet).slice(0, 25).forEach(tag => {
+        const btn = document.createElement('button');
+        btn.className = 'tag-chip';
+        btn.textContent = tag;
+        btn.onclick = () => {
+          document.getElementById('searchInput').value = tag;
+          filterGallery();
+        };
+        cloud.appendChild(btn);
+      });
+    }
+
+    function renderGallery(posts) {
+      const grid = document.getElementById('galleryGrid');
+      if (!posts.length) {
+        grid.innerHTML = '<div class="empty-state">Aún no hay imágenes con esos tags. ¡Sube la primera arriba!</div>';
+        return;
+      }
+
+      grid.innerHTML = '';
+      posts.forEach(post => {
+        const tags = normalizeTags(post.tags || '');
+        const card = document.createElement('div');
+        card.className = 'panel-card';
+        card.onclick = () => openModal(post.image_url, tags);
+
+        card.innerHTML = `
+          <img src="${post.image_url}" alt="오찬우 Archive" loading="lazy" />
+          <div class="card-tags">
+            ${tags.map(t => `<span class="mini-tag">${t}</span>`).join('')}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterGallery() {
+      const queryTerms = normalizeTags(document.getElementById('searchInput').value);
+      if (!queryTerms.length) {
+        renderGallery(allPosts);
+        return;
+      }
+
+      const filtered = allPosts.filter(post => {
+        const postTags = normalizeTags(post.tags || '');
+        return queryTerms.every(q => postTags.some(pt => pt.includes(q)));
+      });
+      renderGallery(filtered);
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      renderGallery(allPosts);
+    }
+
+    async function uploadPost() {
+      const fileInput = document.getElementById('fileInput');
+      const tagsInput = document.getElementById('tagsInput');
+      const status = document.getElementById('uploadStatus');
+      const btn = document.getElementById('uploadBtn');
+
+      const file = fileInput.files[0];
+      const tagsList = normalizeTags(tagsInput.value);
+
+      if (!file) {
+        status.textContent = 'Por favor selecciona una imagen primero.';
+        return;
+      }
+      if (!tagsList.length) {
+        status.textContent = 'Escribe al menos un tag para identificar la imagen.';
+        return;
+      }
+
+      btn.disabled = true;
+      status.textContent = 'Subiendo imagen al archivo...';
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from('imagenes')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        status.textContent = `Error subiendo imagen: ${uploadError.message}`;
+        btn.disabled = false;
+        return;
+      }
+
+      const { data: urlData } = supabaseClient.storage
+        .from('imagenes')
+        .getPublicUrl(fileName);
+
+      const { error: dbError } = await supabaseClient
+        .from('posts')
+        .insert([{ image_url: urlData.publicUrl, tags: tagsList.join(', ') }]);
+
+      if (dbError) {
+        status.textContent = `Error guardando tags: ${dbError.message}`;
+        btn.disabled = false;
+        return;
+      }
+
+      status.textContent = '¡Listo! Imagen añadida a 오찬우 Archive.';
+      fileInput.value = '';
+      tagsInput.value = '';
+      btn.disabled = false;
+      loadPosts();
+    }
+
+    function openModal(url, tags) {
+      currentModalUrl = url;
+      document.getElementById('modalImg').src = url;
+      document.getElementById('copyFeedback').textContent = '';
+      document.getElementById('modalTags').innerHTML = tags
+        .map(t => `<span class="mini-tag">${t}</span>`)
+        .join('');
+      document.getElementById('imageModal').classList.add('open');
+    }
+
+    function closeModal(e) {
+      if (e.target.id === 'imageModal') forceCloseModal();
+    }
+
+    function forceCloseModal() {
+      document.getElementById('imageModal').classList.remove('open');
+    }
+
+    function copyImageUrl() {
+      navigator.clipboard.writeText(currentModalUrl);
+      document.getElementById('copyFeedback').textContent = '¡Enlace copiado!';
+    }
+
+    loadPosts();
+  </script>
+</body>
+</html>
